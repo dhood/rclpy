@@ -1,3 +1,5 @@
+// generated from rclpy/resource/_rcly_logging.c.em
+
 // Copyright 2017 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +17,7 @@
 #include <Python.h>
 
 #include <rcutils/logging.h>
+#include <rcutils/logging_macros.h>
 
 /// Initialize the logging system.
 /**
@@ -58,6 +61,30 @@ rclpy_logging_get_severity_threshold()
   return PyLong_FromLong(severity);
 }
 
+@{
+from rcutils import severities as severities
+supported_logging_severities = [severity.lower() for severity in severities]
+}@
+@[for severity in supported_logging_severities]@
+/// Log a message with severity @(severity.upper()).
+/**
+ *
+ * \param[in] message String to log.
+ * \return None
+ */
+static PyObject *
+rclpy_logging_log_@(severity)(PyObject * Py_UNUSED(module), PyObject * args)
+{
+  const char * message;
+  if (!PyArg_ParseTuple(args, "s", &message)) {
+    return NULL;
+  }
+  RCUTILS_LOG_@(severity.upper())(message)
+  Py_RETURN_NONE;
+}
+
+@[ end for]@
+
 /// Define the public methods of this module
 static PyMethodDef rclpy_logging_methods[] = {
   {"rclpy_logging_initialize", rclpy_logging_initialize, METH_NOARGS,
@@ -67,11 +94,16 @@ static PyMethodDef rclpy_logging_methods[] = {
   {"rclpy_logging_set_severity_threshold", rclpy_logging_set_severity_threshold, METH_VARARGS,
    "Set the global severity threshold."},
 
+@[for severity in supported_logging_severities]@
+  {"rclpy_logging_log_@(severity)", rclpy_logging_log_@(severity), METH_VARARGS,
+   "Log a message with severity @(severity.upper())"},
+@[ end for]@
+
   {NULL, NULL, 0, NULL}  /* sentinel */
 };
 
 PyDoc_STRVAR(rclpy_logging__doc__,
-"RCLPY module for logging.");
+  "RCLPY module for logging.");
 
 /// Define the Python module
 static struct PyModuleDef _rclpy_logging_module = {

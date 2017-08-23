@@ -76,6 +76,24 @@ ament_target_dependencies(rclpy
   "rcutils"
 )
 
+# Logging support (auto-generated for different combinations of features)
+# "watch" template for changes
+configure_file(
+  "resource/_rclpy_logging.c.em"
+  "_rclpy_logging.c.em.watch"
+  COPYONLY)
+# generate file with logging support from template
+set(python_code
+  "import em"
+  "em.invoke(['-o', 'src/rclpy/_rclpy_logging.c', '${CMAKE_CURRENT_SOURCE_DIR}/resource/_rclpy_logging.c.em'])")
+string(REPLACE ";" "$<SEMICOLON>" python_code "${python_code}")
+add_custom_command(OUTPUT src/rclpy/_rclpy_logging.c
+  COMMAND ${CMAKE_COMMAND} -E make_directory "src/rclpy"
+  COMMAND ${PYTHON_EXECUTABLE} ARGS -c "${python_code}"
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/_rclpy_logging.c.em.watch"
+  COMMENT "Expanding _rclpy_logging.c.em"
+  VERBATIM
+)
 add_library(
   rclpy_logging
   SHARED src/rclpy/_rclpy_logging.c

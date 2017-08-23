@@ -17,8 +17,7 @@ from enum import IntEnum
 
 from rclpy.impl.implementation_singleton import rclpy_logging_implementation as _rclpy_logging
 
-import rclpy.rcutils
-from rclpy.rcutils import feature_combinations
+import rcutils
 
 
 class LoggingSeverity(IntEnum):
@@ -48,31 +47,63 @@ def set_severity_threshold(severity):
     return _rclpy_logging.rclpy_logging_set_severity_threshold(severity)
 
 
-def log(
-        message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_INFO, *,
-        name=None, once=False, throttle_duration=None, throttle_time_source_type=None):
+def logdebug(message):
+    return _rclpy_logging.rclpy_logging_log_debug(message)
+
+
+def loginfo(message):
+    log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_INFO)
+
+
+def logwarn(message):
+    log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_WARN)
+
+
+# TODO(dhood): make logerr
+def logerror(message):
+    log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_ERROR)
+
+
+def logfatal(message):
+    log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_FATAL)
+
+'''
+# using an input of duration instead of throttle_duration
+param_mappings = {
+    'duration': 'throttle_duration',
+    'time_source_type': 'duration_time_source_type'
+}
+
+required_params = {}
+for suffix in rclpy.rcutils.feature_combinations:
+    required_params_suffix = rclpy.rcutils.feature_combinations[suffix].params
+    for param, desc in required_params_suffix:
+        if param in param_mappings:
+            required_params_suffix[param_mappings[p]] = desc
+    required_params[suffix] = required_params_suffix
+'''
+
+
+def log(message, severity, **kwargs):
+    assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
     suffix = ''
+
     # Build up the suffix
-    if throttle_duration or throttle_time_source_type:
+    if 'duration' in kwargs or 'time_source_type' in kwargs:
         suffix += '_THROTTLE'
-    if once:
+    if 'once' in kwargs:
         suffix += '_ONCE'
-    if name:
+    if 'name' in kwargs:
         suffix += '_NAMED'
-    if suffix not in rclpy.rcutils.feature_combinations:
-        raise AttributeError('invalid logging combination')
+
+    if suffix not in rcutils.feature_combinations:
+        raise AttributeError('invalid combination of logging features')
+
     # Get the ordered dict for that suffix (maintaining ordering is important)
-    args = rclpy.rcutils.get_macro_parameters(suffix)
-    if throttle_duration or throttle_time_source_type:
-        args['duration'] = throttle_duration
-        args['time_source_type'] = throttle_time_source_type
-    if once:
-        args['name'] = name
-    if name:
-        args['name'] = name
-    required_params = rclpy.rcutils.get_macro_parameters(suffix)
+    args = rcutils.get_macro_parameters(suffix)
+    required_params = rcutils.get_macro_parameters(suffix)
     for p in required_params:
-        if p not in args.keys() or args[p] is None:
+        if p not in kwargs:
             raise RuntimeError('required parameter {0} not specified but required for logging {1}'.format(p, suffix))
     print(suffix)
     print(args)
