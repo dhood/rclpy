@@ -32,19 +32,12 @@ def set_severity_threshold(severity):
 
 
 def log(message, severity, **kwargs):
-    # Build up the suffix
-    suffix = ''
-    if kwargs.get('skip_first'):
-        suffix += '_SKIPFIRST'
-    if kwargs.get('throttle_duration') or kwargs.get('throttle_time_source_type'):
-        suffix += '_THROTTLE'
-    if kwargs.get('once'):
-        suffix += '_ONCE'
-    if kwargs.get('name'):
-        suffix += '_NAMED'
+    # Get the requested features for this log call
+    features = rclpy.impl.logging_rcutils_config.get_features_from_kwargs(**kwargs)
+    suffix = rclpy.impl.logging_rcutils_config.get_suffix_from_features(features)
 
     if suffix not in rclpy.impl.logging_rcutils_config.supported_feature_combinations:
-        raise AttributeError('invalid combination of logging features')
+        raise AttributeError('invalid combination of logging features: ' + str(features))
 
     required_params = rclpy.impl.logging_rcutils_config.get_macro_parameters(suffix)
     # Copy only the required arguments into a minimal dictionary

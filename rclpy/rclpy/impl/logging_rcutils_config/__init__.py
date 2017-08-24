@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 import rcutils
 from rcutils import feature_combinations
+from rcutils import get_suffix_from_features as get_suffix_from_features # noqa
 from rcutils import severities as severities
 
 # TODO(dhood): support these with lambdas
@@ -43,3 +44,18 @@ for suffix, feature in supported_feature_combinations.items():
 def get_macro_parameters(suffix):
     macro_parameters = rcutils.get_macro_parameters(suffix)
     return macro_parameters
+
+
+def get_features_from_kwargs(**kwargs):
+    features = []
+    if kwargs.get('skip_first'):
+        features.append('skip_first')
+    if kwargs.get('throttle_duration') or kwargs.get('throttle_time_source_type'):
+        features.append('throttle')
+    if kwargs.get('once'):
+        features.append('once')
+    if kwargs.get('name'):
+        features.append('named')
+
+    # TODO(dhood): warning for unused kwargs?
+    return features
