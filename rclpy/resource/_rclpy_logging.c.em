@@ -137,10 +137,6 @@ additional_tuple_types += properties['tuple_type']
   if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|@(additional_tuple_types)", kwlist, &message@(''.join([', &' + p['scoped_name'] for n, p in supported_feature_combinations[suffix].params.items()])))) {
     return NULL;
   }
-@[if suffix.lower() == "_throttle_named"]@
-  printf("%llu\n", duration);
-  printf("%s\n", time_source_type);
-@[end if]@
   RCUTILS_LOG_@(severity)@(suffix)(@(''.join([p['scoped_name'] + ', ' for n, p in supported_feature_combinations[suffix].params.items()]))message)
   Py_RETURN_NONE;
 }
