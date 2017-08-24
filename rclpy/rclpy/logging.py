@@ -15,7 +15,7 @@
 
 from enum import IntEnum
 
-import rclpy.logging_rcutils
+import rclpy.impl.logging_rcutils
 
 
 class LoggingSeverity(IntEnum):
@@ -45,16 +45,16 @@ class LoggingSeverity(IntEnum):
 
 
 def initialize():
-    return rclpy.logging_rcutils.initialize()
+    return rclpy.impl.logging_rcutils.initialize()
 
 
 def get_severity_threshold():
-    return rclpy.logging_rcutils.get_severity_threshold()
+    return rclpy.impl.logging_rcutils.get_severity_threshold()
 
 
 def set_severity_threshold(severity):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
-    return rclpy.logging_rcutils.set_severity_threshold(severity)
+    return rclpy.impl.logging_rcutils.set_severity_threshold(severity)
 
 
 def logdebug(message):
@@ -81,4 +81,4 @@ def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
     severity = LoggingSeverity(severity)
 
-    return rclpy.logging_rcutils.log(message, severity, **kwargs)
+    return rclpy.impl.logging_rcutils.log(message, severity, **kwargs)
