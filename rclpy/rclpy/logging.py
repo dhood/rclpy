@@ -15,9 +15,8 @@
 
 from enum import IntEnum
 
+from logging_rcutils import get_macro_parameters, supported_feature_combinations
 from rclpy.impl.implementation_singleton import rclpy_logging_implementation as _rclpy_logging
-
-import rcutils
 
 
 class LoggingSeverity(IntEnum):
@@ -66,14 +65,6 @@ def logerr(message):
 def logfatal(message):
     return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_FATAL)
 
-from collections import OrderedDict
-from rcutils import feature_combinations
-from rcutils import severities as severities
-supported_feature_combinations = \
-    OrderedDict(
-        {k: v for k, v in feature_combinations.items()
-            if 'EXPRESSION' not in k and 'FUNCTION' not in k})
-supported_logging_severities = [severity for severity in severities]
 
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
@@ -89,12 +80,11 @@ def log(message, severity, **kwargs):
     if 'name' in kwargs:
         suffix += '_NAMED'
 
-    if suffix not in rcutils.feature_combinations:
+    if suffix not in supported_feature_combinations:
         raise AttributeError('invalid combination of logging features')
 
     # Get the ordered dict for that suffix (maintaining ordering is important)
-    args = rcutils.get_macro_parameters(suffix)
-    required_params = rcutils.get_macro_parameters(suffix)
+    required_params = get_macro_parameters(suffix)
     for p in required_params:
         if p not in kwargs:
             raise RuntimeError(
