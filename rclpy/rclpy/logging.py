@@ -15,8 +15,8 @@
 
 from enum import IntEnum
 
-from logging_rcutils import get_macro_parameters, supported_feature_combinations
 from rclpy.impl.implementation_singleton import rclpy_logging_implementation as _rclpy_logging
+from rclpy.logging_rcutils import get_macro_parameters, supported_feature_combinations
 
 
 class LoggingSeverity(IntEnum):

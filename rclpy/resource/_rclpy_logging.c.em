@@ -63,7 +63,7 @@ rclpy_logging_get_severity_threshold()
 }
 @{
 import sys
-sys.path.insert(0, '@CMAKE_CURRENT_SOURCE_DIR@/rclpy')
+sys.path.insert(0, rclpy_module_path)
 from logging_rcutils import supported_feature_combinations, supported_logging_severities
 }@
 

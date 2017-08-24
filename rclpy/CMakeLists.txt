@@ -79,22 +79,21 @@ ament_target_dependencies(rclpy
 # Logging support (auto-generated for different combinations of features)
 # "watch" template for changes
 configure_file(
-  "resource/_rclpy_logging.c.em.in"
-  "_rclpy_logging.c.em.in.watch"
+  "resource/_rclpy_logging.c.em"
+  "_rclpy_logging.c.em.watch"
   COPYONLY)
-configure_file(
-  "resource/_rclpy_logging.c.em.in"
-  "_rclpy_logging.c.em"
-  @ONLY)
 # generate file with logging support from template
+set(rclpy_module_path ${CMAKE_CURRENT_SOURCE_DIR}/rclpy)
+set(template_in ${CMAKE_CURRENT_SOURCE_DIR}/resource/_rclpy_logging.c.em)
+set(template_out src/rclpy/_rclpy_logging.c)
 set(python_code
   "import em"
-  "em.invoke(['-o', 'src/rclpy/_rclpy_logging.c', '${CMAKE_CURRENT_BINARY_DIR}/_rclpy_logging.c.em'])")
+  "em.invoke(['-o', '${template_out}', '-D', 'rclpy_module_path=\"${rclpy_module_path}\"', '${template_in}'])")
 string(REPLACE ";" "$<SEMICOLON>" python_code "${python_code}")
 add_custom_command(OUTPUT src/rclpy/_rclpy_logging.c
   COMMAND ${CMAKE_COMMAND} -E make_directory "src/rclpy"
   COMMAND ${PYTHON_EXECUTABLE} ARGS -c "${python_code}"
-  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/_rclpy_logging.c.em.in.watch"
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/_rclpy_logging.c.em.watch"
   COMMENT "Expanding _rclpy_logging.c.em"
   VERBATIM
 )
