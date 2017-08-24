@@ -13,8 +13,10 @@
 # limitations under the License.
 
 
-from rclpy.impl.implementation_singleton import rclpy_logging_implementation as _rclpy_logging
-import rclpy.logging_rcutils
+import importlib
+
+import rclpy.impl.logging_rcutils_config
+_rclpy_logging = importlib.import_module('._rclpy_logging', package='rclpy')
 
 
 def initialize():
@@ -41,10 +43,10 @@ def log(message, severity, **kwargs):
     if kwargs.get('name'):
         suffix += '_NAMED'
 
-    if suffix not in rclpy.logging_rcutils.supported_feature_combinations:
+    if suffix not in rclpy.impl.logging_rcutils_config.supported_feature_combinations:
         raise AttributeError('invalid combination of logging features')
 
-    required_params = rclpy.logging_rcutils.get_macro_parameters(suffix)
+    required_params = rclpy.impl.logging_rcutils_config.get_macro_parameters(suffix)
     # Copy only the required arguments into a minimal dictionary
     # TODO(dhood): make c functions ignore unnecessary keyword arguments
     params = {}
@@ -56,5 +58,5 @@ def log(message, severity, **kwargs):
             raise RuntimeError(
                 'required parameter "{0}" not specified '
                 'but required for logging feature "{1}"'.format(scoped_name, suffix))
-    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.short_form() + suffix.lower())
+    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.short_name() + suffix.lower())
     return f(message, **params)

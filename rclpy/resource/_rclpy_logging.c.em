@@ -63,8 +63,8 @@ rclpy_logging_get_severity_threshold()
 }
 @{
 import sys
-sys.path.insert(0, rclpy_module_path)
-from logging_rcutils import supported_feature_combinations, supported_logging_severities
+sys.path.insert(0, logging_rcutils_config_path)
+from logging_rcutils_config import supported_feature_combinations, supported_logging_severities
 }@
 
 @[for severity in supported_logging_severities]@

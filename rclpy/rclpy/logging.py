@@ -31,7 +31,7 @@ class LoggingSeverity(IntEnum):
     RCLPY_LOG_SEVERITY_ERROR = 3
     RCLPY_LOG_SEVERITY_FATAL = 4
 
-    def short_form(self):
+    def short_name(self):
         if self.name == 'RCLPY_LOG_SEVERITY_DEBUG':
             return 'debug'
         if self.name == 'RCLPY_LOG_SEVERITY_INFO':
