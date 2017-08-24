@@ -38,6 +38,20 @@ class TestLogging(unittest.TestCase):
         rclpy.logging.logerr('message')
         rclpy.logging.logfatal('message')
 
+        for severity in LoggingSeverity:
+            rclpy.logging.log(
+                'message', severity,
+                name='my_name',
+                once=True,
+            )
+            rclpy.logging.log(
+                'message', severity,
+                throttle_duration=1000,
+                name='my_name',
+                throttle_time_source_type='RCUTILS_STEADY_TIME',
+                skip_first=True,
+            )
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -32,7 +32,7 @@ def set_severity_threshold(severity):
 
 
 def log(message, severity, **kwargs):
-    # Get the requested features for this log call
+    # Infer the requested log features from the keyword arguments
     features = rclpy.impl.logging_rcutils_config.get_features_from_kwargs(**kwargs)
     suffix = rclpy.impl.logging_rcutils_config.get_suffix_from_features(features)
 
@@ -40,6 +40,7 @@ def log(message, severity, **kwargs):
         raise AttributeError('invalid combination of logging features: ' + str(features))
 
     required_params = rclpy.impl.logging_rcutils_config.get_macro_parameters(suffix)
+
     # Copy only the required arguments into a minimal dictionary
     # TODO(dhood): make c functions ignore unnecessary keyword arguments
     params = {}
@@ -51,5 +52,8 @@ def log(message, severity, **kwargs):
             raise RuntimeError(
                 'required parameter "{0}" not specified '
                 'but required for logging feature "{1}"'.format(scoped_name, suffix))
-    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.short_name() + suffix.lower())
+
+    # Get the relevant function from the C extension
+    # TODO(dhood): argument checking? e.g. throttle duration > 0
+    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower() + suffix.lower())
     return f(message, **params)

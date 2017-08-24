@@ -25,23 +25,11 @@ class LoggingSeverity(IntEnum):
     This enum matches the one defined in rcutils/logging.h
     """
 
-    RCLPY_LOG_SEVERITY_DEBUG = 0
-    RCLPY_LOG_SEVERITY_INFO = 1
-    RCLPY_LOG_SEVERITY_WARN = 2
-    RCLPY_LOG_SEVERITY_ERROR = 3
-    RCLPY_LOG_SEVERITY_FATAL = 4
-
-    def short_name(self):
-        if self.name == 'RCLPY_LOG_SEVERITY_DEBUG':
-            return 'debug'
-        if self.name == 'RCLPY_LOG_SEVERITY_INFO':
-            return 'info'
-        if self.name == 'RCLPY_LOG_SEVERITY_WARN':
-            return 'warn'
-        if self.name == 'RCLPY_LOG_SEVERITY_ERROR':
-            return 'error'
-        if self.name == 'RCLPY_LOG_SEVERITY_FATAL':
-            return 'fatal'
+    DEBUG = 0
+    INFO = 1
+    WARN = 2
+    ERROR = 3
+    FATAL = 4
 
 
 def initialize():
@@ -49,7 +37,7 @@ def initialize():
 
 
 def get_severity_threshold():
-    return rclpy.impl.logging_rcutils.get_severity_threshold()
+    return LoggingSeverity(rclpy.impl.logging_rcutils.get_severity_threshold())
 
 
 def set_severity_threshold(severity):
@@ -58,23 +46,23 @@ def set_severity_threshold(severity):
 
 
 def logdebug(message):
-    return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_INFO)
+    return log(message, severity=LoggingSeverity.DEBUG)
 
 
 def loginfo(message):
-    return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_INFO)
+    return log(message, severity=LoggingSeverity.INFO)
 
 
 def logwarn(message):
-    return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_WARN)
+    return log(message, severity=LoggingSeverity.WARN)
 
 
 def logerr(message):
-    return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_ERROR)
+    return log(message, severity=LoggingSeverity.ERROR)
 
 
 def logfatal(message):
-    return log(message, severity=LoggingSeverity.RCLPY_LOG_SEVERITY_FATAL)
+    return log(message, severity=LoggingSeverity.FATAL)
 
 
 def log(message, severity, **kwargs):
