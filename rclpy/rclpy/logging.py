@@ -82,7 +82,14 @@ for suffix in rclpy.rcutils.feature_combinations:
             required_params_suffix[param_mappings[p]] = desc
     required_params[suffix] = required_params_suffix
 '''
-
+from collections import OrderedDict
+from rcutils import feature_combinations
+from rcutils import severities as severities
+supported_feature_combinations = \
+    OrderedDict(
+        {k: v for k, v in feature_combinations.items()
+            if 'EXPRESSION' not in k and 'FUNCTION' not in k})
+supported_logging_severities = [severity for severity in severities]
 
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
@@ -104,7 +111,8 @@ def log(message, severity, **kwargs):
     required_params = rcutils.get_macro_parameters(suffix)
     for p in required_params:
         if p not in kwargs:
-            raise RuntimeError('required parameter {0} not specified but required for logging {1}'.format(p, suffix))
-    print(suffix)
-    print(args)
-    return
+            raise RuntimeError(
+                'required parameter {0} not specified '
+                'but required for logging feature {1}'.format(p, suffix))
+    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + 'info' + suffix.lower())
+    return f(message)
