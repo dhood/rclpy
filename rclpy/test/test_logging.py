@@ -31,10 +31,12 @@ class TestLogging(unittest.TestCase):
             self.assertEqual(severity, rclpy.logging.get_severity_threshold())
         rclpy.logging.set_severity_threshold(original_severity)
 
-    def test_pure_log_calls(self):
-        for severity in ['debug', 'info', 'error']:
-            logcall = getattr(rclpy.logging, 'log' + severity)
-            logcall('message')
+    def test_log(self):
+        rclpy.logging.loginfo('message')
+        rclpy.logging.logdebug('message')
+        rclpy.logging.logwarn('message')
+        rclpy.logging.logerr('message')
+        rclpy.logging.logfatal('message')
 
 
 if __name__ == '__main__':
