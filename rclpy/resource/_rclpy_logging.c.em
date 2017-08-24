@@ -82,14 +82,16 @@ for suffix, feature in supported_feature_combinations.items():
         properties['scoped_name'] = param
         if param == 'duration':
             properties.update({
-                'scoped_name': 'throttle_duration',
-                'c_type': 'unsigned long long',
+                #'scoped_name': 'throttle_duration',
+                'scoped_name': 'duration',
+                'c_type': 'unsigned PY_LONG_LONG',
                 'tuple_type': 'K'})
         if param == 'time_source_type':
             properties.update({
-                'scoped_name': 'throttle_time_source_type',
-                'c_type': 'PyObject *',
-                'tuple_type': 'O'})
+                #'scoped_name': 'throttle_time_source_type',
+                'scoped_name': 'time_source_type',
+                'c_type': 'const char *',
+                'tuple_type': 's'})
         if param == 'name':
             properties.update({
                 'c_type': 'const char *',
@@ -119,9 +121,10 @@ for suffix, feature in supported_feature_combinations.items():
  * \return None
  */
 static PyObject *
-rclpy_logging_log_@(severity.lower())@(suffix.lower())(PyObject * Py_UNUSED(module), PyObject * args)
+rclpy_logging_log_@(severity.lower())@(suffix.lower())(PyObject * Py_UNUSED(module), PyObject * args, PyObject * keywds)
 {
   const char * message;
+  static char *kwlist[] = {"message"@(''.join([', "' + p['scoped_name'] + '"' for n, p in supported_feature_combinations[suffix].params.items()])), NULL};
 @{
 additional_tuple_types = ''
 }@
@@ -131,9 +134,13 @@ additional_tuple_types = ''
 additional_tuple_types += properties['tuple_type']
 }@
 @[  end for]@
-  if (!PyArg_ParseTuple(args, "s@(additional_tuple_types)", &message)) {
+  if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|@(additional_tuple_types)", kwlist, &message@(''.join([', &' + p['scoped_name'] for n, p in supported_feature_combinations[suffix].params.items()])))) {
     return NULL;
   }
+@[if suffix.lower() == "_throttle_named"]@
+  printf("%llu\n", duration);
+  printf("%s\n", time_source_type);
+@[end if]@
   RCUTILS_LOG_@(severity)@(suffix)(@(''.join([p['scoped_name'] + ', ' for n, p in supported_feature_combinations[suffix].params.items()]))message)
   Py_RETURN_NONE;
 }
@@ -152,7 +159,7 @@ static PyMethodDef rclpy_logging_methods[] = {
 
 @[for severity in supported_logging_severities]@
 @[for suffix in supported_feature_combinations]@
-  {"rclpy_logging_log_@(severity.lower())@(suffix.lower())", rclpy_logging_log_@(severity.lower())@(suffix.lower()), METH_VARARGS,
+  {"rclpy_logging_log_@(severity.lower())@(suffix.lower())", (PyCFunction)rclpy_logging_log_@(severity.lower())@(suffix.lower()), METH_VARARGS|METH_KEYWORDS,
    "Log a message with severity @(severity) and feature(s) @(suffix)"},
 @[ end for]@
 @[end for]@

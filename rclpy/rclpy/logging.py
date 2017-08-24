@@ -93,9 +93,11 @@ supported_logging_severities = [severity for severity in severities]
 
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
-    suffix = ''
 
     # Build up the suffix
+    suffix = ''
+    if 'skipfirst' in kwargs:
+        suffix += '_SKIPFIRST'
     if 'duration' in kwargs or 'time_source_type' in kwargs:
         suffix += '_THROTTLE'
     if 'once' in kwargs:
@@ -115,4 +117,4 @@ def log(message, severity, **kwargs):
                 'required parameter {0} not specified '
                 'but required for logging feature {1}'.format(p, suffix))
     f = getattr(_rclpy_logging, 'rclpy_logging_log_' + 'info' + suffix.lower())
-    return f(message)
+    return f(message, **kwargs)
