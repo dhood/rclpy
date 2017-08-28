@@ -36,7 +36,7 @@ for suffix, feature in supported_feature_combinations.items():
         if param == 'duration':
             properties.update({
                 'scoped_name': 'throttle_duration',
-                'c_type': 'unsigned PY_LONG_LONG',
+                'c_type': 'PY_LONG_LONG',
                 'tuple_type': 'K',
             })
         if param == 'time_source_type':
