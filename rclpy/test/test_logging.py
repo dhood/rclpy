@@ -51,6 +51,19 @@ class TestLogging(unittest.TestCase):
                 throttle_time_source_type='RCUTILS_STEADY_TIME',
                 skip_first=True,
             )
+            # Check half-specified feature
+            with self.assertRaisesRegex(RuntimeError, 'required parameter .* not specified'):
+                rclpy.logging.log(
+                    'message', severity,
+                    throttle_duration=1000,
+                )
+            # Check unused kwargs
+            rclpy.logging.log(
+                'message', severity,
+                name='my_name',
+                once=True,
+                unused_kwarg='unused_kwarg',
+            )
 
 
 if __name__ == '__main__':

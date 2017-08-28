@@ -41,8 +41,8 @@ def log(message, severity, **kwargs):
 
     required_params = rclpy.impl.logging_rcutils_config.get_macro_parameters(suffix)
 
-    # Copy only the required arguments into a minimal dictionary
-    # TODO(dhood): make c functions ignore unnecessary keyword arguments
+    # Copy only the required arguments into a minimal dictionary.
+    # This is required because the C function cannot parse unknown keyword arguments.
     params = {}
     for p, properties in required_params.items():
         scoped_name = properties['scoped_name']
@@ -51,7 +51,8 @@ def log(message, severity, **kwargs):
         except:
             raise RuntimeError(
                 'required parameter "{0}" not specified '
-                'but required for logging feature "{1}"'.format(scoped_name, suffix))
+                'but is required for the one of the requested logging features "{1}"'.format(
+                    scoped_name, features))
 
     # Get the relevant function from the C extension
     f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower() + suffix.lower())
