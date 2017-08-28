@@ -54,6 +54,5 @@ def log(message, severity, **kwargs):
                 'but required for logging feature "{1}"'.format(scoped_name, suffix))
 
     # Get the relevant function from the C extension
-    # TODO(dhood): argument checking? e.g. throttle duration > 0
     f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower() + suffix.lower())
     return f(message, **params)

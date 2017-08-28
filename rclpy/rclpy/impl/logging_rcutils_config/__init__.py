@@ -36,12 +36,14 @@ for suffix, feature in supported_feature_combinations.items():
         if param == 'duration':
             properties.update({
                 'scoped_name': 'throttle_duration',
-                'c_type': 'PY_LONG_LONG',
+                'c_type': 'rcutils_duration_value_t',
                 'tuple_type': 'K',
             })
         if param == 'time_source_type':
             properties.update({
                 'scoped_name': 'throttle_time_source_type',
+                # TODO(dhood): update to pass a capsule of the time source,
+                # once it's being used in the throttle feature in rcutils
                 'c_type': 'const char *',
                 'tuple_type': 's',
             })
