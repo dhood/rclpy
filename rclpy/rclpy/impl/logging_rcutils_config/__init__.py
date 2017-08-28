@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 
 import rcutils
-from rcutils import feature_combinations
-from rcutils import get_suffix_from_features as get_suffix_from_features # noqa
-from rcutils import severities as severities
+from rcutils.logging import get_suffix_from_features as get_suffix_from_features # noqa
+from rcutils.logging import severities as severities
 
-# TODO(dhood): support these with lambdas
 supported_feature_combinations = \
-    {k: v for k, v in feature_combinations.items()
+    {k: deepcopy(v) for k, v in rcutils.logging.feature_combinations.items()
+        # TODO(dhood): support these with lambdas
         if 'EXPRESSION' not in k and 'FUNCTION' not in k}
-supported_logging_severities = [severity for severity in severities]
+supported_logging_severities = severities
 
-# stuff information about wrapping the parameter type
+# Stuff information about each parameter needed for the C extension
 for suffix, feature in supported_feature_combinations.items():
     for param, doc_line in feature.params.items():
-        properties = {'doc_line': doc_line} if type(doc_line) == str else doc_line
+        properties = {'doc_line': doc_line}
         properties['scoped_name'] = param
         if param == 'skipfirst':
             properties.update({
@@ -54,8 +54,7 @@ for suffix, feature in supported_feature_combinations.items():
 
 
 def get_macro_parameters(suffix):
-    macro_parameters = rcutils.get_macro_parameters(suffix)
-    return macro_parameters
+    return supported_feature_combinations[suffix].params
 
 
 def get_features_from_kwargs(**kwargs):
