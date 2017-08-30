@@ -36,6 +36,7 @@ class TestLogging(unittest.TestCase):
 
         for severity in reversed(LoggingSeverity):
             print('\n')
+            print(severity)
             print('logging once')
             rclpy.logging.log(
                 'message', severity,

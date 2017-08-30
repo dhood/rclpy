@@ -19,6 +19,7 @@ except ImportError:
     import pickle
 import importlib
 import inspect
+import time
 
 import rclpy.impl.logging_rcutils_config
 _rclpy_logging = importlib.import_module('._rclpy_logging', package='rclpy')
@@ -48,15 +49,28 @@ class RcutilsLogger:
     def set_severity_threshold(self, severity):
         return _rclpy_logging.rclpy_logging_set_severity_threshold(severity)
 
-    def context_init_once(self, context):
+    def context_init_throttle(self, context, **kwargs):
+        context['throttle_duration'] = kwargs['throttle_duration']
+        context['throttle_last_logged'] = 0
+
+    def context_init_once(self, context, **kwargs):
         context['once'] = False
 
+    def log_condition_throttle(self, context):
+        logging_condition = True
+        # TODO(dhood): use rcutils time and the the time source type
+        now = time.time() / 1000
+        logging_condition = now >= context['throttle_last_logged'] + context['throttle_duration']
+        if logging_condition:
+            context['throttle_last_logged'] = now
+        return logging_condition
+
     def log_condition_once(self, context):
-        retval = False
+        logging_condition = False
         if not context['once']:
-            retval = True
+            logging_condition = True
             context['once'] = True
-        return retval
+        return logging_condition
 
     def log(self, message, severity, **kwargs):
         # Infer the requested log features from the keyword arguments
@@ -90,7 +104,7 @@ class RcutilsLogger:
             for feature in features:
                 f = getattr(self, 'context_init_' + feature, None)
                 if f is not None:
-                    f(context)
+                    f(context, **kwargs)
             self._contexts[caller_id] = context
 
         make_log_call = True
