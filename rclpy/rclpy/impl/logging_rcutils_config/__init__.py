@@ -60,15 +60,20 @@ def get_macro_parameters(suffix):
 
 
 def get_features_from_kwargs(**kwargs):
-    features = []
-    if kwargs.get('skip_first'):
-        features.append('skip_first')
-    if kwargs.get('throttle_duration') or kwargs.get('throttle_time_source_type'):
-        features.append('throttle')
-    if kwargs.get('once'):
-        features.append('once')
-    if kwargs.get('name'):
-        features.append('named')
-
+    detected_features = []
+    for feature, feature_class in feature_classes.items():
+        if any(kwargs.get(param_name) for param_name in feature_class.params.keys()):
+            detected_features.append(feature)
+    # Check that all required parameters (with no default value) have been specified
+    for feature in detected_features:
+        for param_name, default_value in feature_classes[feature].params.items():
+            if param_name not in kwargs:
+                if default_value is not None:
+                    kwargs[param_name] = default_value
+                else:
+                    raise RuntimeError(
+                        'required parameter "{0}" not specified '
+                        'but is required for the the logging feature "{1}"'.format(
+                            param_name, feature))
     # TODO(dhood): warning for unused kwargs?
-    return features
+    return detected_features

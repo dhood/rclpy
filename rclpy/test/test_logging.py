@@ -54,7 +54,7 @@ class TestLogging(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'required parameter .* not specified'):
                 rclpy.logging.log(
                     'message', severity,
-                    throttle_duration=1000,
+                    throttle_time_source_type='asdf',
                 )
             # Check unused kwargs
             print('logging skip first')

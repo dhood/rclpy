@@ -36,6 +36,7 @@ def _frame_to_caller_id(frame):
 
 
 class Feature:
+    params = {}
 
     @staticmethod
     def initialize_context(context, **kwargs):
@@ -47,6 +48,10 @@ class Feature:
 
 
 class Throttle(Feature):
+    params = {
+        'throttle_duration': None,
+        'throttle_time_source_type': 'RCUTILS_STEADY_TIME',
+    }
 
     @staticmethod
     def initialize_context(context, **kwargs):
@@ -65,6 +70,9 @@ class Throttle(Feature):
 
 
 class Once(Feature):
+    params = {
+        'once': None,
+    }
 
     @staticmethod
     def initialize_context(context, **kwargs):
@@ -80,6 +88,9 @@ class Once(Feature):
 
 
 class SkipFirst(Feature):
+    params = {
+        'skip_first': None,
+    }
 
     @staticmethod
     def initialize_context(context, **kwargs):
@@ -121,21 +132,6 @@ class RcutilsLogger:
 
         if suffix not in rclpy.impl.logging_rcutils_config.supported_feature_combinations:
             raise AttributeError('invalid combination of logging features: ' + str(features))
-
-        required_params = rclpy.impl.logging_rcutils_config.get_macro_parameters(suffix)
-
-        # Copy only the required arguments into a minimal dictionary.
-        # This is required because the C function cannot parse unknown keyword arguments.
-        params = {}
-        for p, properties in required_params.items():
-            scoped_name = properties['scoped_name']
-            try:
-                params[scoped_name] = kwargs[scoped_name]
-            except:
-                raise RuntimeError(
-                    'required parameter "{0}" not specified '
-                    'but is required for the one of the requested logging features "{1}"'.format(
-                        scoped_name, features))
 
         name = kwargs.get('name', self.name)
         caller_id = kwargs.get(
