@@ -64,51 +64,34 @@ rclpy_logging_get_severity_threshold()
 @{
 import sys
 sys.path.insert(0, logging_rcutils_config_path)
-from logging_rcutils_config import supported_feature_combinations, supported_logging_severities
+from logging_rcutils_config import supported_logging_severities
 }@
 
 @[for severity in supported_logging_severities]@
-@[ for suffix in supported_feature_combinations]@
-/// rclpy_logging_log_@(severity.lower())@(suffix.lower()).
+/// rclpy_logging_log_@(severity.lower()).
 /**
  * Log a message with severity @(severity)@
-@[ if supported_feature_combinations[suffix].doc_lines]@
- with the following conditions:
-@[ else]@
-.
-@[ end if]@
-@[ for doc_line in supported_feature_combinations[suffix].doc_lines]@
- * @(doc_line)
-@[ end for]@
  *
+ * \param name Name of logger.
  * \param message String to log.
-@[ for param_name, properties in supported_feature_combinations[suffix].params.items()]@
- * \param @(param_name) @(properties['doc_line'])
-@[ end for]@
  * \return None
  */
 static PyObject *
-rclpy_logging_log_@(severity.lower())@(suffix.lower())(PyObject * Py_UNUSED(module), PyObject * args, PyObject * keywds)
+rclpy_logging_log_@(severity.lower())(PyObject * Py_UNUSED(module), PyObject * args)
 {
   const char * message;
-  static char *kwlist[] = {"message"@(''.join([', "' + p['scoped_name'] + '"' for n, p in supported_feature_combinations[suffix].params.items()])), NULL};
-@{
-additional_tuple_types = ''
-}@
-@[  for param_name, properties in supported_feature_combinations[suffix].params.items()]@
-  @(properties['c_type']) @(properties['scoped_name']);
-@{
-additional_tuple_types += properties['tuple_type']
-}@
-@[  end for]@
-  if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|@(additional_tuple_types)", kwlist, &message@(''.join([', &' + p['scoped_name'] for n, p in supported_feature_combinations[suffix].params.items()])))) {
+  const char * name;
+  if (!PyArg_ParseTuple(args, "ss", &name, &message)) {
     return NULL;
   }
-  RCUTILS_LOG_@(severity)@(suffix)(@(''.join([p['scoped_name'] + ', ' for n, p in supported_feature_combinations[suffix].params.items()]))message)
+  RCUTILS_LOGGING_AUTOINIT
+  static rcutils_log_location_t __rcutils_logging_location = {__func__, __FILE__, __LINE__};
+  if (RCUTILS_LOG_SEVERITY_@(severity) >= rcutils_logging_get_severity_threshold()) {
+    rcutils_log(&__rcutils_logging_location, RCUTILS_LOG_SEVERITY_@(severity), name, message);
+  }
   Py_RETURN_NONE;
 }
 
-@[ end for]@
 @[end for]@
 
 /// Define the public methods of this module
@@ -121,10 +104,8 @@ static PyMethodDef rclpy_logging_methods[] = {
    "Set the global severity threshold."},
 
 @[for severity in supported_logging_severities]@
-@[for suffix in supported_feature_combinations]@
-  {"rclpy_logging_log_@(severity.lower())@(suffix.lower())", (PyCFunction)rclpy_logging_log_@(severity.lower())@(suffix.lower()), METH_VARARGS|METH_KEYWORDS,
-   "Log a message with severity @(severity) and feature(s) @(suffix)"},
-@[ end for]@
+  {"rclpy_logging_log_@(severity.lower())", (PyCFunction)rclpy_logging_log_@(severity.lower()), METH_VARARGS,
+   "Log a message with severity @(severity)"},
 @[end for]@
 
   {NULL, NULL, 0, NULL}  /* sentinel */

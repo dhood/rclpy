@@ -55,5 +55,5 @@ def log(message, severity, **kwargs):
                     scoped_name, features))
 
     # Get the relevant function from the C extension
-    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower() + suffix.lower())
-    return f(message, **params)
+    f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
+    return f(kwargs.get('name', ''), message)
