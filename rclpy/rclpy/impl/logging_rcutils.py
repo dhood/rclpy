@@ -13,14 +13,31 @@
 # limitations under the License.
 
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import importlib
+import inspect
 
 import rclpy.impl.logging_rcutils_config
 _rclpy_logging = importlib.import_module('._rclpy_logging', package='rclpy')
 _rclpy_logging.rclpy_logging_initialize()
 
 
+def _frame_to_caller_id(frame):
+    caller_id = (
+        inspect.getabsfile(frame),
+        frame.f_lineno,
+        frame.f_lasti,
+    )
+    print(caller_id)
+    return pickle.dumps(caller_id)
+
+
 class RcutilsLogger:
+
+    _contexts = {}
 
     def __init__(self, name=''):
         self.name = name
@@ -30,6 +47,18 @@ class RcutilsLogger:
 
     def set_severity_threshold(self, severity):
         return _rclpy_logging.rclpy_logging_set_severity_threshold(severity)
+
+    def log_condition_once(self, context):
+        print(self._contexts)
+        retval = False
+        caller_id = context['caller_id']
+        if caller_id not in self._contexts \
+                or caller_id in self._contexts and not self._contexts[caller_id]['once']:
+            retval = True
+            context['once'] = True
+            self._contexts[caller_id] = context
+        print(retval)
+        return retval
 
     def log(self, message, severity, **kwargs):
         # Infer the requested log features from the keyword arguments
@@ -54,11 +83,22 @@ class RcutilsLogger:
                     'but is required for the one of the requested logging features "{1}"'.format(
                         scoped_name, features))
 
-        # TODO(dhood): deal with features
+        make_log_call = True
+        name = kwargs.get('name', self.name)
+        caller_id = kwargs.get(
+            'caller_id',
+            _frame_to_caller_id(inspect.currentframe().f_back.f_back))
+        print(caller_id)
+        context = {'name': name, 'severity': severity, 'caller_id': caller_id}
+        for feature in features:
+            f = getattr(self, 'log_condition_' + feature, None)
+            if f is not None:
+                make_log_call &= f(context)
 
-        # Get the relevant function from the C extension
-        f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
-        f(kwargs.get('name', self.name), message)
+        if make_log_call:
+            # Get the relevant function from the C extension
+            f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
+            f(name, message)
 
 
 def get_named_logger(name):
