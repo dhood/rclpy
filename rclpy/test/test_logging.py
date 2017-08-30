@@ -20,10 +20,6 @@ from rclpy.logging import LoggingSeverity
 
 class TestLogging(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        rclpy.logging.initialize()
-
     def test_severity_threshold(self):
         original_severity = rclpy.logging.get_severity_threshold()
         for severity in LoggingSeverity:

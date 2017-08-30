@@ -39,7 +39,7 @@ rclpy_logging_initialize()
  * \return NULL on failure
  */
 static PyObject *
-rclpy_logging_set_severity_threshold(PyObject * Py_UNUSED(module), PyObject * args)
+rclpy_logging_set_severity_threshold(PyObject * Py_UNUSED(self), PyObject * args)
 {
   int severity;
   if (!PyArg_ParseTuple(args, "i", &severity)) {
@@ -77,7 +77,7 @@ from logging_rcutils_config import supported_logging_severities
  * \return None
  */
 static PyObject *
-rclpy_logging_log_@(severity.lower())(PyObject * Py_UNUSED(module), PyObject * args)
+rclpy_logging_log_@(severity.lower())(PyObject * Py_UNUSED(self), PyObject * args)
 {
   const char * message;
   const char * name;

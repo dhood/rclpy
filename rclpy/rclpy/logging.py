@@ -32,41 +32,49 @@ class LoggingSeverity(IntEnum):
     FATAL = 4
 
 
-def initialize():
-    return rclpy.impl.logging_rcutils.initialize()
+_rclpy_logger = rclpy.impl.logging_rcutils.get_named_logger('rclpy.internal')
 
 
 def get_severity_threshold():
-    return LoggingSeverity(rclpy.impl.logging_rcutils.get_severity_threshold())
+    return LoggingSeverity(_rclpy_logger.get_severity_threshold())
 
 
 def set_severity_threshold(severity):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
-    return rclpy.impl.logging_rcutils.set_severity_threshold(severity)
+    return _rclpy_logger.set_severity_threshold(severity)
 
 
-def logdebug(message):
-    return log(message, severity=LoggingSeverity.DEBUG)
+def logdebug(message, **kwargs):
+    _rclpy_logger.log(
+        message, severity=LoggingSeverity.DEBUG,
+        **kwargs)
 
 
-def loginfo(message):
-    return log(message, severity=LoggingSeverity.INFO)
+def loginfo(message, **kwargs):
+    _rclpy_logger.log(
+        message, severity=LoggingSeverity.INFO,
+        **kwargs)
 
 
-def logwarn(message):
-    return log(message, severity=LoggingSeverity.WARN)
+def logwarn(message, **kwargs):
+    _rclpy_logger.log(
+        message, severity=LoggingSeverity.WARN,
+        **kwargs)
 
 
-def logerr(message):
-    return log(message, severity=LoggingSeverity.ERROR)
+def logerr(message, **kwargs):
+    _rclpy_logger.log(
+        message, severity=LoggingSeverity.ERROR,
+        **kwargs)
 
 
-def logfatal(message):
-    return log(message, severity=LoggingSeverity.FATAL)
+def logfatal(message, **kwargs):
+    _rclpy_logger.log(
+        message, severity=LoggingSeverity.FATAL,
+        **kwargs)
 
 
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
     severity = LoggingSeverity(severity)
-
-    return rclpy.impl.logging_rcutils.log(message, severity, **kwargs)
+    _rclpy_logger.log(message, severity, **kwargs)
