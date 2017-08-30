@@ -49,7 +49,6 @@ class TestLogging(unittest.TestCase):
                 throttle_duration=1000,
                 name='my_name',
                 throttle_time_source_type='RCUTILS_STEADY_TIME',
-                skip_first=True,
             )
             # Check half-specified feature
             with self.assertRaisesRegex(RuntimeError, 'required parameter .* not specified'):
@@ -58,10 +57,11 @@ class TestLogging(unittest.TestCase):
                     throttle_duration=1000,
                 )
             # Check unused kwargs
+            print('logging skip first')
             rclpy.logging.log(
                 'message', severity,
                 name='my_name',
-                once=True,
+                skip_first=True,
                 unused_kwarg='unused_kwarg',
             )
 

@@ -69,15 +69,37 @@ class Once(Feature):
 
     @staticmethod
     def initialize_context(context, **kwargs):
-        context['once'] = False
+        context['has_been_logged_once'] = False
 
     @staticmethod
     def log_condition(context):
         logging_condition = False
-        if not context['once']:
+        if not context['has_been_logged_once']:
             logging_condition = True
-            context['once'] = True
+            context['has_been_logged_once'] = True
         return logging_condition
+
+
+class SkipFirst(Feature):
+
+    @staticmethod
+    def initialize_context(context, **kwargs):
+        context['first_has_been_skipped'] = False
+
+    @staticmethod
+    def log_condition(context):
+        logging_condition = True
+        if not context['first_has_been_skipped']:
+            logging_condition = False
+            context['first_has_been_skipped'] = True
+        return logging_condition
+
+
+feature_classes = {
+    'throttle': Throttle,
+    'once': Once,
+    'skip_first': SkipFirst,
+}
 
 
 class RcutilsLogger:
@@ -123,16 +145,14 @@ class RcutilsLogger:
         if caller_id not in self._contexts:
             context = {'name': name, 'severity': severity}
             for feature in features:
-                feature_class = getattr(rclpy.impl.logging_rcutils, feature.capitalize(), None)
-                if feature_class is not None:
-                    feature_class.initialize_context(context, **kwargs)
+                if feature in feature_classes:
+                    feature_classes[feature].initialize_context(context, **kwargs)
             self._contexts[caller_id] = context
 
         make_log_call = True
         for feature in features:
-            feature_class = getattr(rclpy.impl.logging_rcutils, feature.capitalize(), None)
-            if feature_class is not None:
-                make_log_call &= feature_class.log_condition(self._contexts[caller_id])
+            if feature in feature_classes:
+                make_log_call &= feature_classes[feature].log_condition(self._contexts[caller_id])
         if make_log_call:
             # Get the relevant function from the C extension
             f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
