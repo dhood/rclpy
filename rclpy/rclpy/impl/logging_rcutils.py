@@ -48,16 +48,14 @@ class RcutilsLogger:
     def set_severity_threshold(self, severity):
         return _rclpy_logging.rclpy_logging_set_severity_threshold(severity)
 
+    def context_init_once(self, context):
+        context['once'] = False
+
     def log_condition_once(self, context):
-        print(self._contexts)
         retval = False
-        caller_id = context['caller_id']
-        if caller_id not in self._contexts \
-                or caller_id in self._contexts and not self._contexts[caller_id]['once']:
+        if not context['once']:
             retval = True
             context['once'] = True
-            self._contexts[caller_id] = context
-        print(retval)
         return retval
 
     def log(self, message, severity, **kwargs):
@@ -83,18 +81,23 @@ class RcutilsLogger:
                     'but is required for the one of the requested logging features "{1}"'.format(
                         scoped_name, features))
 
-        make_log_call = True
         name = kwargs.get('name', self.name)
         caller_id = kwargs.get(
             'caller_id',
             _frame_to_caller_id(inspect.currentframe().f_back.f_back))
-        print(caller_id)
-        context = {'name': name, 'severity': severity, 'caller_id': caller_id}
+        if caller_id not in self._contexts:
+            context = {'name': name, 'severity': severity}
+            for feature in features:
+                f = getattr(self, 'context_init_' + feature, None)
+                if f is not None:
+                    f(context)
+            self._contexts[caller_id] = context
+
+        make_log_call = True
         for feature in features:
             f = getattr(self, 'log_condition_' + feature, None)
             if f is not None:
-                make_log_call &= f(context)
-
+                make_log_call &= f(self._contexts[caller_id])
         if make_log_call:
             # Get the relevant function from the C extension
             f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
