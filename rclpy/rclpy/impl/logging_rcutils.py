@@ -32,7 +32,6 @@ def _frame_to_caller_id(frame):
         frame.f_lineno,
         frame.f_lasti,
     )
-    print(caller_id)
     return pickle.dumps(caller_id)
 
 
@@ -58,7 +57,7 @@ class Throttle(Feature):
     def log_condition(context):
         logging_condition = True
         # TODO(dhood): use rcutils time and the the time source type
-        now = time.time() / 1000
+        now = time.time()
         logging_condition = now >= context['throttle_last_logged'] + context['throttle_duration']
         if logging_condition:
             context['throttle_last_logged'] = now
