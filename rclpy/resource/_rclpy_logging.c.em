@@ -62,12 +62,10 @@ rclpy_logging_get_severity_threshold()
   return PyLong_FromLong(severity);
 }
 @{
-import sys
-sys.path.insert(0, logging_rcutils_config_path)
-from logging_rcutils_config import supported_logging_severities
+from rcutils.logging import severities
 }@
 
-@[for severity in supported_logging_severities]@
+@[for severity in severities]@
 /// rclpy_logging_log_@(severity.lower()).
 /**
  * Log a message with severity @(severity)@
@@ -103,7 +101,7 @@ static PyMethodDef rclpy_logging_methods[] = {
   {"rclpy_logging_set_severity_threshold", rclpy_logging_set_severity_threshold, METH_VARARGS,
    "Set the global severity threshold."},
 
-@[for severity in supported_logging_severities]@
+@[for severity in severities]@
   {"rclpy_logging_log_@(severity.lower())", (PyCFunction)rclpy_logging_log_@(severity.lower()), METH_VARARGS,
    "Log a message with severity @(severity)"},
 @[end for]@

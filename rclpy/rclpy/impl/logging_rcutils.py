@@ -21,7 +21,6 @@ import importlib
 import inspect
 import time
 
-import rclpy.impl.logging_rcutils_config
 _rclpy_logging = importlib.import_module('._rclpy_logging', package='rclpy')
 _rclpy_logging.rclpy_logging_initialize()
 
@@ -112,6 +111,26 @@ feature_classes = {
 }
 
 
+def get_features_from_kwargs(**kwargs):
+    detected_features = []
+    for feature, feature_class in feature_classes.items():
+        if any(kwargs.get(param_name) for param_name in feature_class.params.keys()):
+            detected_features.append(feature)
+    # Check that all required parameters (with no default value) have been specified
+    for feature in detected_features:
+        for param_name, default_value in feature_classes[feature].params.items():
+            if param_name not in kwargs:
+                if default_value is not None:
+                    kwargs[param_name] = default_value
+                else:
+                    raise RuntimeError(
+                        'required parameter "{0}" not specified '
+                        'but is required for the the logging feature "{1}"'.format(
+                            param_name, feature))
+    # TODO(dhood): warning for unused kwargs?
+    return detected_features
+
+
 class RcutilsLogger:
 
     _contexts = {}
@@ -127,11 +146,7 @@ class RcutilsLogger:
 
     def log(self, message, severity, **kwargs):
         # Infer the requested log features from the keyword arguments
-        features = rclpy.impl.logging_rcutils_config.get_features_from_kwargs(**kwargs)
-        suffix = rclpy.impl.logging_rcutils_config.get_suffix_from_features(features)
-
-        if suffix not in rclpy.impl.logging_rcutils_config.supported_feature_combinations:
-            raise AttributeError('invalid combination of logging features: ' + str(features))
+        features = get_features_from_kwargs(**kwargs)
 
         name = kwargs.get('name', self.name)
         caller_id = kwargs.get(

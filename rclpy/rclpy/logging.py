@@ -34,7 +34,10 @@ class LoggingSeverity(IntEnum):
     FATAL = 4
 
 
-_rclpy_logger = rclpy.impl.logging_rcutils.get_named_logger('rclpy.internal')
+def get_named_logger(name):
+    return rclpy.impl.logging_rcutils.get_named_logger(name)
+
+_rclpy_logger = get_named_logger('rclpy.internal')
 
 
 def get_severity_threshold():
@@ -84,4 +87,6 @@ def logfatal(message, **kwargs):
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
     severity = LoggingSeverity(severity)
-    _rclpy_logger.log(message, severity, **kwargs)
+    _rclpy_logger.log(
+        message, severity,
+        **kwargs)
