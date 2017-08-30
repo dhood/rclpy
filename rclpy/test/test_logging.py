@@ -32,18 +32,21 @@ class TestLogging(unittest.TestCase):
         rclpy.logging.set_severity_threshold(original_severity)
 
     def test_log(self):
-        rclpy.logging.loginfo('message')
         rclpy.logging.logdebug('message')
+        rclpy.logging.loginfo('message')
         rclpy.logging.logwarn('message')
         rclpy.logging.logerr('message')
         rclpy.logging.logfatal('message')
 
-        for severity in LoggingSeverity:
+        for severity in reversed(LoggingSeverity):
+            print('\n')
+            print('logging once')
             rclpy.logging.log(
                 'message', severity,
                 name='my_name',
                 once=True,
             )
+            print('logging throttled')
             rclpy.logging.log(
                 'message', severity,
                 throttle_duration=1000,
