@@ -36,6 +36,50 @@ def _frame_to_caller_id(frame):
     return pickle.dumps(caller_id)
 
 
+class Feature:
+
+    @staticmethod
+    def initialize_context(context, **kwargs):
+        pass
+
+    @staticmethod
+    def log_condition(context, **kwargs):
+        pass
+
+
+class Throttle(Feature):
+
+    @staticmethod
+    def initialize_context(context, **kwargs):
+        context['throttle_duration'] = kwargs['throttle_duration']
+        context['throttle_last_logged'] = 0
+
+    @staticmethod
+    def log_condition(context):
+        logging_condition = True
+        # TODO(dhood): use rcutils time and the the time source type
+        now = time.time() / 1000
+        logging_condition = now >= context['throttle_last_logged'] + context['throttle_duration']
+        if logging_condition:
+            context['throttle_last_logged'] = now
+        return logging_condition
+
+
+class Once(Feature):
+
+    @staticmethod
+    def initialize_context(context, **kwargs):
+        context['once'] = False
+
+    @staticmethod
+    def log_condition(context):
+        logging_condition = False
+        if not context['once']:
+            logging_condition = True
+            context['once'] = True
+        return logging_condition
+
+
 class RcutilsLogger:
 
     _contexts = {}
@@ -48,29 +92,6 @@ class RcutilsLogger:
 
     def set_severity_threshold(self, severity):
         return _rclpy_logging.rclpy_logging_set_severity_threshold(severity)
-
-    def context_init_throttle(self, context, **kwargs):
-        context['throttle_duration'] = kwargs['throttle_duration']
-        context['throttle_last_logged'] = 0
-
-    def context_init_once(self, context, **kwargs):
-        context['once'] = False
-
-    def log_condition_throttle(self, context):
-        logging_condition = True
-        # TODO(dhood): use rcutils time and the the time source type
-        now = time.time() / 1000
-        logging_condition = now >= context['throttle_last_logged'] + context['throttle_duration']
-        if logging_condition:
-            context['throttle_last_logged'] = now
-        return logging_condition
-
-    def log_condition_once(self, context):
-        logging_condition = False
-        if not context['once']:
-            logging_condition = True
-            context['once'] = True
-        return logging_condition
 
     def log(self, message, severity, **kwargs):
         # Infer the requested log features from the keyword arguments
@@ -102,16 +123,16 @@ class RcutilsLogger:
         if caller_id not in self._contexts:
             context = {'name': name, 'severity': severity}
             for feature in features:
-                f = getattr(self, 'context_init_' + feature, None)
-                if f is not None:
-                    f(context, **kwargs)
+                feature_class = getattr(rclpy.impl.logging_rcutils, feature.capitalize(), None)
+                if feature_class is not None:
+                    feature_class.initialize_context(context, **kwargs)
             self._contexts[caller_id] = context
 
         make_log_call = True
         for feature in features:
-            f = getattr(self, 'log_condition_' + feature, None)
-            if f is not None:
-                make_log_call &= f(self._contexts[caller_id])
+            feature_class = getattr(rclpy.impl.logging_rcutils, feature.capitalize(), None)
+            if feature_class is not None:
+                make_log_call &= feature_class.log_condition(self._contexts[caller_id])
         if make_log_call:
             # Get the relevant function from the C extension
             f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
