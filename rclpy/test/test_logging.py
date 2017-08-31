@@ -35,6 +35,7 @@ class TestLogging(unittest.TestCase):
         rclpy.logging.logfatal('message')
 
         for severity in reversed(LoggingSeverity):
+            # TODO(dhood): tests that logging features work as expected
             print('\n')
             print(severity)
             print('logging once')

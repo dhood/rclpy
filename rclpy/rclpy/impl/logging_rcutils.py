@@ -179,7 +179,3 @@ class RcutilsLogger:
             print(str(caller_id))
             f = getattr(_rclpy_logging, 'rclpy_logging_log_' + severity.name.lower())
             f(name, message)
-
-
-def get_named_logger(name):
-    return RcutilsLogger(name)
