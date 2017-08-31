@@ -82,7 +82,6 @@ rclpy_logging_log_@(severity.lower())(PyObject * Py_UNUSED(self), PyObject * arg
   if (!PyArg_ParseTuple(args, "ss", &name, &message)) {
     return NULL;
   }
-  RCUTILS_LOGGING_AUTOINIT
   static rcutils_log_location_t __rcutils_logging_location = {__func__, __FILE__, __LINE__};
   if (RCUTILS_LOG_SEVERITY_@(severity) >= rcutils_logging_get_severity_threshold()) {
     rcutils_log(&__rcutils_logging_location, RCUTILS_LOG_SEVERITY_@(severity), name, message);

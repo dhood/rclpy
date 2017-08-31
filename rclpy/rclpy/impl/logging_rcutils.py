@@ -71,7 +71,7 @@ class Throttle(Feature):
     @staticmethod
     def log_condition(context):
         logging_condition = True
-        # TODO(dhood): use rcutils time and the the time source type
+        # TODO(dhood): use rcutils time and the time source type
         now = time.time()
         logging_condition = now >= context['throttle_last_logged'] + context['throttle_duration']
         if logging_condition:

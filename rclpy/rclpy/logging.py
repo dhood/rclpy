@@ -67,6 +67,7 @@ def logfatal(message, **kwargs):
     _rclpy_logger.log(message, severity=LoggingSeverity.FATAL, **kwargs)
 
 
+# TODO(dhood): document the supported features
 def log(message, severity, **kwargs):
     assert isinstance(severity, LoggingSeverity) or isinstance(severity, int)
     severity = LoggingSeverity(severity)
